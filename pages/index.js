@@ -24,7 +24,7 @@ export default function Home() {
       {!session &&
           <button 
             className='flex items-center bg-[#e50914] text-white text-sm px-4 py-2 rounded-sm'
-            onClick={() => signIn('google')}>Sign in</button>
+            onClick={() => signIn()}>Sign in</button>
         }
         {session &&
           <>
