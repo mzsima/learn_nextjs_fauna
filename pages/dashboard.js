@@ -3,15 +3,16 @@ import formatDate from 'date-fns/format'
 import Header from '@/components/Header';
 import { CheckIcon, PlusCircleIcon, SelectorIcon } from '@heroicons/react/outline';
 import SlideOver from '@/components/SlideOver';
+import ActionMessage from '@/components/ActionMessage';
 import React, { useContext, useState } from 'react';
 
 import { Listbox, Transition } from '@headlessui/react'
 import { Fragment } from 'react/cjs/react.production.min';
 import useSWR, { mutate } from 'swr';
+import { DashboardContext } from 'context/DashboardContext';
 
 const StatusTable = () => {
-  const { goal } = useContext(DashboardContext);
-
+  const { goals } = useContext(DashboardContext);
 
   return (
     <div className='m-4'>
@@ -24,7 +25,7 @@ const StatusTable = () => {
           </tr>
         </thead>
         <tbody>
-          {goal?.data.map(r => r).map((r, i) =>
+          {goals?.data.map(r => r).map((r, i) =>
             <tr key={i}>
               <td className='p-1 text-center'>{formatDate(new Date(r.updated / 1000), "yyyy-MM-dd")}</td>
               <td className='p-1'> {r?.description}</td>
@@ -38,24 +39,38 @@ const StatusTable = () => {
   )
 }
 
+const GoalCard = ({ goal }) => {
+  const { setOpenComment, setSelectedGoal } = useContext(DashboardContext);
+  const onClick = () => {
+    setOpenComment(true)
+    setSelectedGoal(goal)
+  }
+  return (
+    <div className='bg-gray-100 m-4 p-2' onClick={onClick}>{goal.goal}</div>
+  )
+}
+
 const GoalTree = () => {
 
-  const { setPareantGoal, setOpen, goal } = useContext(DashboardContext);
+  const { setPareantGoal, setOpen, goals } = useContext(DashboardContext);
 
   const openSlide = ({ parent }) => {
     setPareantGoal(parent)
     setOpen(true)
   }
 
-  const goalTextFromId = (id) =>
-    goal.data.filter(g => g.id === id).map(g => g.goal)
+  const goalFromChildId = (id) =>
+    goals.data.filter(g => g.id === id)[0]
 
   return (
     <div className="grid grid-cols-1 gap-x-8 m-4 bg-gray-400 divide-y divide-black">
-      {goal?.data.map((r, i) =>
+      {goals?.data.map((r, i) =>
         <div key={i} className='h-32 grid grid-cols-4'>
-          <div className='bg-gray-100 m-4 p-2'>{r.goal}</div>
-          {r.children.data.map((child, ci) => <div key={ci} className='bg-gray-100 m-4 p-2'>{goalTextFromId(child)}</div>)}
+          {/* <div className='bg-gray-100 m-4 p-2'>{r.goal}</div> */}
+          <GoalCard goal={r} />
+          {r.children.data.map((child, ci) =>
+            <GoalCard key={ci} goal={goalFromChildId(child)} />
+          )}
           {r.children.data.length < 3 &&
             <div className="mx-4 my-auto" >
               <button className='bg-gray-300 hover:bg-gray-200 text-gray-800 font-bold inline-flex items-center rounded-full'
@@ -204,24 +219,24 @@ const putGoal = (payload) => {
 }
 
 const useGoalFlow = () => {
-  const { data: goal } = useSWR(GOAL_PATH, () => fetch(GOAL_PATH).then(r => r.json()))
+  const { data: goals } = useSWR(GOAL_PATH, () => fetch(GOAL_PATH).then(r => r.json()))
   const onSubmit = async (payload) => {
     await putGoal(payload)
     await mutate(GOAL_PATH)
   }
 
   return {
-    goal,
+    goals,
     onSubmit,
   }
 }
 
-const DashboardContext = React.createContext()
-
 const Dashboard = () => {
   const [open, setOpen] = useState(false)
+  const [openComment, setOpenComment] = useState(false)
   const [parentGoal, setPareantGoal] = useState()
-  const { goal, onSubmit } = useGoalFlow()
+  const [selectedGoal, setSelectedGoal] = useState()
+  const { goals, onSubmit } = useGoalFlow()
 
   return (
     <div className="inset-0 h-screen">
@@ -229,16 +244,17 @@ const Dashboard = () => {
         <title>Dashboard</title>
       </Head>
       <Header />
+
       <DashboardContext.Provider value={{
-        open, setOpen, parentGoal, setPareantGoal, goal, onSubmit
+        open, setOpen, parentGoal, setPareantGoal, goals, onSubmit, openComment, setOpenComment, setSelectedGoal
       }}>
         <StatusTable />
-
         <div className='my-8'>
           <GoalTree />
         </div>
 
         <GoalSlideOver />
+        <ActionMessage open={openComment} setOpen={setOpenComment} selectedGoal={selectedGoal} setSelectedGoal={setSelectedGoal} />
       </DashboardContext.Provider>
     </div >
   )

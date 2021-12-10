@@ -25,6 +25,16 @@ const MakeGoalRelationshipsIndex = () =>
     values: [{ field: ["data", "child"] }]
   })
 
+const MakeActionCommentCollection = () =>
+  Q.CreateCollection({ name: 'ActionComment' })
+
+const MakeActionCommentIndex = () =>
+  Q.CreateIndex({
+    name: 'action_comment_by_goal',
+    source: Q.Collection('ActionComment'),
+    terms: [{ field: ['data', 'goal'] }],
+  })
+
 const resolveAdminKey = () => {
   if (process.env.FAUNA_ADMIN_KEY) {
     return Promise.resolve(process.env.FAUNA_ADMIN_KEY)
@@ -63,7 +73,9 @@ const main = async () => {
     // MakeGoalCollection,
     // MakeGoalIndex,
     // MakeGoalRelationshipsCollection,
-    MakeGoalRelationshipsIndex
+    // MakeGoalRelationshipsIndex,
+    MakeActionCommentCollection,
+    MakeActionCommentIndex,
   ]) {
     await client.query(Make())
   }

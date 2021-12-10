@@ -52,11 +52,11 @@ export default function SlideOver({ show, setOpen, title, children }) {
                     </button>
                   </div>
                 </Transition.Child>
-                <div className="h-full flex flex-col py-6 bg-white shadow-xl overflow-y-scroll">
-                  <div className="px-4 sm:px-6">
+                <div className="flex flex-col py-6 h-full bg-white shadow-xl">
+                  <div className="px-2 sm:px-2">
                     <Dialog.Title className="text-lg font-medium text-gray-900">{title}</Dialog.Title>
                   </div>
-                  <div className="mt-6 relative flex-1 px-4 sm:px-6">
+                  <div className="mt-6 relative flex-1 px-2 sm:px-2">
                     {/* Replace with your content */}
                     {children}
                     {/* /End replace */}
