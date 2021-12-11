@@ -1,4 +1,4 @@
-import { createActionComment, listActionComments } from '@/lib/fauna'
+import { createActionComment, listActionComments, updateActionGoal } from '@/lib/fauna'
 import { getSession } from "next-auth/react"
 
 export default async function handler(req, res) {
@@ -20,6 +20,9 @@ export default async function handler(req, res) {
           text: comment,
           goal: goal,
         }).catch(e => console.log(e))
+
+        await updateActionGoal(created).catch(e => console.log(e))
+
         res.json({ created })
       },
     }

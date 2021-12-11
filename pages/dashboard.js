@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import { CheckIcon, PlusCircleIcon, SelectorIcon } from '@heroicons/react/outline';
 import SlideOver from '@/components/SlideOver';
 import ActionMessage from '@/components/ActionMessage';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 
 import { Listbox, Transition } from '@headlessui/react'
 import { Fragment } from 'react/cjs/react.production.min';
@@ -12,7 +12,16 @@ import useSWR, { mutate } from 'swr';
 import { DashboardContext } from 'context/DashboardContext';
 
 const StatusTable = () => {
-  const { goals } = useContext(DashboardContext);
+
+  const GOAL_FOLLOWEE_PATH = '/api/goal/followee'
+  const useGoalFolloweeFlow = () => {
+    const { data: goals } = useSWR(GOAL_FOLLOWEE_PATH, () => fetch(GOAL_FOLLOWEE_PATH).then(r => r.json()))
+    return {
+      goals,
+    }
+  }
+  const { goals } = useGoalFolloweeFlow()
+  const goalsSorted = useMemo(() => goals ? [...goals?.data].sort((a, b) => b.ts - a.ts) : [], [goals])
 
   return (
     <div className='m-4'>
@@ -20,16 +29,18 @@ const StatusTable = () => {
         <thead>
           <tr>
             <th className='w-2/12 bg-gray-100'>更新日</th>
-            <th className='w-6/12 bg-gray-100'>アクション内容</th>
+            <th className='w-6/12 bg-gray-100'>名前</th>
             <th className='w-4/12 bg-gray-100'>ゴール</th>
+            <th className='w-6/12 bg-gray-100'>説明</th>
           </tr>
         </thead>
         <tbody>
-          {goals?.data.map(r => r).map((r, i) =>
+          {goalsSorted?.map((r, i) =>
             <tr key={i}>
-              <td className='p-1 text-center'>{formatDate(new Date(r.updated / 1000), "yyyy-MM-dd")}</td>
-              <td className='p-1'> {r?.description}</td>
-              <td className='p-1'> {r?.goal} </td>
+              <td className='p-1 text-center'>{formatDate(new Date(r.ts / 1000), "MM-dd HH:mm")}</td>
+              <td className='p-1'> {r?.data.user}</td>
+              <td className='p-1'> {r?.data.goal} </td>
+              <td className='p-1'> {r?.data.description}</td>
             </tr>
           )
           }
@@ -84,7 +95,8 @@ const GoalTree = () => {
       }
       <div className='h-24 grid grid-cols-4'>
         <div className='mx-auto my-4'>
-          <button className='bg-gray-300 hover:bg-gray-200 text-gray-800 font-bold inline-flex items-center rounded-full'>
+          <button className='bg-gray-300 hover:bg-gray-200 text-gray-800 font-bold inline-flex items-center rounded-full'
+            onClick={() => openSlide({ parent: null })}>
             <PlusCircleIcon className="h-6 w-6" />
           </button>
         </div>
