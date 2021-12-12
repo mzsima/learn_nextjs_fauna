@@ -25,6 +25,14 @@ const MakeGoalRelationshipsIndex = () =>
     values: [{ field: ["data", "child"] }]
   })
 
+const MakeGoalRelationshipsFromGaolIndex = () =>
+  Q.CreateIndex({
+    name: "parents_from_goal",
+    source: Q.Collection("GoalRelationships"),
+    terms: [{ field: ["data", "child"] }],
+    values: [{ field: ["data", "parent"] }]
+  })
+
 const MakeActionCommentCollection = () =>
   Q.CreateCollection({ name: 'ActionComment' })
 
@@ -56,6 +64,14 @@ const MakeRelationshipsIndex = () =>
     source: Q.Collection('relationships'),
     terms: [{ field: ["data", "followee"] }],
     values: [{ field: ["data", "follower"] }]
+  })
+
+const MakeRelationshipsIndexByFollower = () =>
+  Q.CreateIndex({
+    name: 'followees_by_follower',
+    source: Q.Collection('relationships'),
+    terms: [{ field: ["data", "follower"] }],
+    values: [{ field: ["data", "followee"] }]
   })
 
 const resolveAdminKey = () => {
@@ -100,10 +116,12 @@ const main = async () => {
     // MakeActionCommentCollection,
     // MakeActionCommentIndex,
     // MakeGoalRelationshipsIndex
-    MakeUsersCollection,
-    MakeUsersIndex,
-    MakeRelationships,
-    MakeRelationshipsIndex,
+    // MakeUsersCollection,
+    // MakeUsersIndex,
+    // MakeRelationships,
+    // MakeRelationshipsIndex,
+    // MakeRelationshipsIndexByFollower,
+    MakeGoalRelationshipsFromGaolIndex,
   ]) {
     await client.query(Make())
   }

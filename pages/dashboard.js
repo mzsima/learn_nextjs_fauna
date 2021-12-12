@@ -41,7 +41,7 @@ const StatusTable = () => {
 
   return (
     <div className='m-4'>
-      <table className="border-collapse table-fixed w-full">
+      <table className="border-collapse table-auto w-full">
         <thead>
           <tr>
             <th className='w-1/12 bg-gray-100'>-</th>
@@ -72,7 +72,7 @@ const GoalCard = ({ goal }) => {
   const { setOpenComment, setSelectedGoal } = useContext(DashboardContext);
   const onClick = () => {
     setOpenComment(true)
-    setSelectedGoal(goal)
+    setSelectedGoal({ id: goal.id, goal: goal })
   }
   return (
     <div className='bg-gray-100 m-4 p-2' onClick={onClick}>{goal.goal}</div>
@@ -93,7 +93,7 @@ const GoalTree = () => {
 
   return (
     <div className="grid grid-cols-1 gap-x-8 m-4 bg-gray-400 divide-y divide-black">
-      {goals?.data.map((r, i) =>
+      {goals?.data.filter(r => r.root).map((r, i) =>
         <div key={i} className='h-32 grid grid-cols-4'>
           {/* <div className='bg-gray-100 m-4 p-2'>{r.goal}</div> */}
           <GoalCard goal={r} />
