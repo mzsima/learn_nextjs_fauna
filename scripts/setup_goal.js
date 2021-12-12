@@ -1,7 +1,7 @@
 const fs = require('fs')
 const readline = require('readline')
 const request = require('request')
-const { Client, query: Q } = require('faunadb')
+const { Client, query: Q, Collection } = require('faunadb')
 const streamToPromise = require('stream-to-promise')
 
 const MakeGoalCollection = () =>
@@ -25,6 +25,14 @@ const MakeGoalRelationshipsIndex = () =>
     values: [{ field: ["data", "child"] }]
   })
 
+const MakeGoalRelationshipsFromGaolIndex = () =>
+  Q.CreateIndex({
+    name: "parents_from_goal",
+    source: Q.Collection("GoalRelationships"),
+    terms: [{ field: ["data", "child"] }],
+    values: [{ field: ["data", "parent"] }]
+  })
+
 const MakeActionCommentCollection = () =>
   Q.CreateCollection({ name: 'ActionComment' })
 
@@ -45,6 +53,25 @@ const MakeUsersIndex = () =>
     source: Q.Collection("users"),
     terms: [{field: ["data", "email"]}],
     unique: true,
+  })
+  
+const MakeRelationships = () =>
+  Q.CreateCollection({ name: "relationships" })
+
+const MakeRelationshipsIndex = () =>
+  Q.CreateIndex({
+    name: 'followers_by_followee',
+    source: Q.Collection('relationships'),
+    terms: [{ field: ["data", "followee"] }],
+    values: [{ field: ["data", "follower"] }]
+  })
+
+const MakeRelationshipsIndexByFollower = () =>
+  Q.CreateIndex({
+    name: 'followees_by_follower',
+    source: Q.Collection('relationships'),
+    terms: [{ field: ["data", "follower"] }],
+    values: [{ field: ["data", "followee"] }]
   })
 
 const resolveAdminKey = () => {
@@ -89,8 +116,12 @@ const main = async () => {
     // MakeActionCommentCollection,
     // MakeActionCommentIndex,
     // MakeGoalRelationshipsIndex
-    MakeUsersCollection,
-    MakeUsersIndex
+    // MakeUsersCollection,
+    // MakeUsersIndex,
+    // MakeRelationships,
+    // MakeRelationshipsIndex,
+    // MakeRelationshipsIndexByFollower,
+    MakeGoalRelationshipsFromGaolIndex,
   ]) {
     await client.query(Make())
   }
