@@ -2,12 +2,15 @@ import { Router, useRouter } from "next/dist/client/router"
 
 import Head from 'next/head'
 import { useSession, signIn, signOut } from "next-auth/react"
-
+import { useSWRUserState } from "context/UserContext"
+import { logoutUsers } from "@/lib/fauna"
 
 export default function Home() {
 
   const { data: session } = useSession()
   const router = useRouter()
+
+  const [ user ] = useSWRUserState()
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white"
@@ -28,14 +31,13 @@ export default function Home() {
         }
         {session &&
           <>
-            <div className='text-white'>Signed in as {session.user.email} </div>
+            <div className='text-black'>{user && user.data[0].name}</div>
             <button
               className='flex items-center bg-[#e50914] text-white text-sm px-4 py-2 rounded-sm'
-              onClick={() => signOut()}>Sign out</button>
+              onClick={() => {signOut(); logoutUsers()}}>Sign out</button>
           </>
         }
       </header>
-
       <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
       {session &&
         <div className="grid grid-cols-1 gap-4">
@@ -48,7 +50,6 @@ export default function Home() {
         </div>
       }
       </main>
-
     </div>
   )
 }

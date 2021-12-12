@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { loginUsers } from "@/lib/fauna"
 
 const providers = process.env.NODE_ENV === "development" ? [
   CredentialsProvider({
@@ -10,10 +11,12 @@ const providers = process.env.NODE_ENV === "development" ? [
       password: { label: "Password", type: "password" }
     },
     async authorize(credentials, req) {
-      if ('yarikiri' === credentials.password) {
+      const auth = await loginUsers(credentials)
+      if (auth.secret) {
         return { name: credentials.username, email: credentials.email }
-      } else {
-        return null
+      }
+      else {
+        return res.status(404).send(auth.code)
       }
     }
   }),
