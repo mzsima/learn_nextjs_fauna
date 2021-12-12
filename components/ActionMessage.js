@@ -1,10 +1,13 @@
 import { DashboardContext } from "context/DashboardContext";
+import { useSession } from "next-auth/react";
 import { useContext, useEffect } from "react";
 import useSWR, { mutate } from 'swr';
 import SlideOver from "./SlideOver";
 
 export default function ActionMessage({ open = false, setOpen, selectedGoal, setSelectedGoal }) {
   const ACTION_COMMNET_PATH = '/api/actioncomment'
+
+  const { data: session } = useSession()
 
   const putActionComment = (payload) => {
 
@@ -34,14 +37,14 @@ export default function ActionMessage({ open = false, setOpen, selectedGoal, set
   const { comments, onSubmit } = useActionComment()
 
   const isMessageFromUser = (r) => {
-    return selectedGoal.user === r.user
+    return r.user === session.user.email
   }
 
   return (
     <SlideOver show={open} setOpen={setOpen} title="ゴール課題">
       <div className='flex flex-col h-full px-4'>
         <div className='flex-none my-2 h-6'>
-          <div className="text-xl font-semibold">Title: {selectedGoal?.goal}</div>
+          <div className="text-xl font-semibold">Title: {selectedGoal?.goal.goal}</div>
         </div>
 
         <ul className="flex-grow h-12 space-y-4 grid content-start grid-cols-1 overflow-y-scroll">

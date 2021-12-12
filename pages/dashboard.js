@@ -10,8 +10,11 @@ import { Listbox, Transition } from '@headlessui/react'
 import { Fragment } from 'react/cjs/react.production.min';
 import useSWR, { mutate } from 'swr';
 import { DashboardContext } from 'context/DashboardContext';
+import { useSession } from 'next-auth/react';
 
 const StatusTable = () => {
+
+  const { data: session } = useSession()
 
   const GOAL_FOLLOWEE_PATH = '/api/goal/followee'
   const useGoalFolloweeFlow = () => {
@@ -23,21 +26,36 @@ const StatusTable = () => {
   const { goals } = useGoalFolloweeFlow()
   const goalsSorted = useMemo(() => goals ? [...goals?.data].sort((a, b) => b.ts - a.ts) : [], [goals])
 
+  const isSeen = (goal) => {
+    if (goal.data.lastMessageSeenBy?.includes(session.user.email)) {
+      return "new"
+    }
+    return "-"
+  }
+
+  const { setOpenComment, setSelectedGoal } = useContext(DashboardContext);
+  const onClick = (goal) => {
+    setSelectedGoal({ id: goal.ref['@ref'].id, goal: goal.data })
+    setOpenComment(true)
+  }
+
   return (
     <div className='m-4'>
       <table className="border-collapse table-fixed w-full">
         <thead>
           <tr>
-            <th className='w-2/12 bg-gray-100'>更新日</th>
-            <th className='w-6/12 bg-gray-100'>名前</th>
-            <th className='w-4/12 bg-gray-100'>ゴール</th>
-            <th className='w-6/12 bg-gray-100'>説明</th>
+            <th className='w-1/12 bg-gray-100'>-</th>
+            <th className='w-1/12 bg-gray-100'>更新日</th>
+            <th className='w-3/12 bg-gray-100'>名前</th>
+            <th className='w-3/12 bg-gray-100'>ゴール</th>
+            <th className='w-4/12 bg-gray-100'>説明</th>
           </tr>
         </thead>
         <tbody>
           {goalsSorted?.map((r, i) =>
-            <tr key={i}>
-              <td className='p-1 text-center'>{formatDate(new Date(r.ts / 1000), "MM-dd HH:mm")}</td>
+            <tr key={i} onClick={() => onClick(r)} className='hover:bg-gray-200'>
+              <td className='p-1'>{isSeen(r)}</td>
+              <td className='p-1 text-center text-sm'>{formatDate(new Date(r.ts / 1000), "MM-dd HH:mm")}</td>
               <td className='p-1'> {r?.data.user}</td>
               <td className='p-1'> {r?.data.goal} </td>
               <td className='p-1'> {r?.data.description}</td>
