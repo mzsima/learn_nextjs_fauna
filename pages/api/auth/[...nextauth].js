@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { loginUsers } from "@/lib/fauna"
 
-const providers = process.env.NODE_ENV === "development" ? [
+const providers = [
   CredentialsProvider({
     name: 'Credentials',
     credentials: {
@@ -19,17 +19,9 @@ const providers = process.env.NODE_ENV === "development" ? [
         return res.status(404).send(auth.code)
       }
     }
-  }),
-  GoogleProvider({
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET
   })
-] : [
-  GoogleProvider({
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET
-  })
-]
+] 
+
 export default NextAuth({
   // TODO dev
   providers: providers,
